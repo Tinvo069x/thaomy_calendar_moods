@@ -8,15 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper: #EFE3C9;
-    --paper-deep: #E4D5B0;
-    --card: #FBF5E7;
-    --card-edge: #F3E9D2;
-    --ink: #4A3826;
-    --muted: #9C8B6F;
-    --line: #E5D8B9;
-    --ring: #DED0AC;
-    --accent: #B5652E;
+    --paper: #2FA84F;
+    --paper-deep: #24913F;
+    --card: #FFFFFF;
+    --card-edge: #EAF6E5;
+    --ink: #1E3B26;
+    --muted: #7C9484;
+    --line: #DCEEDA;
+    --ring: #C9E6C4;
+    --accent: #2FA84F;
 
     --happy: #6E9C55;   --happy-bg:  #DCE7CC;
     --content: #E0A62F; --content-bg:#F5E7C2;
@@ -39,47 +39,92 @@
     padding:28px 18px 40px;
   }
 
-  .board{
-    max-width:1180px;
-    margin:0 auto;
-    display:grid;
-    grid-template-columns: 260px minmax(420px,600px) 260px;
+  /* ---------- 2 trang: Score / Notes ---------- */
+  .page-tabs{
+    display:none;
     gap:26px;
-    align-items:start;
+    max-width:1180px;
+    margin:0 auto 14px;
+    padding:0 6px;
   }
+  .page-tab{
+    font-family:'Fraunces', serif; font-weight:600; font-size:18px;
+    background:none; border:none; padding:4px 2px 10px; cursor:pointer;
+    color:rgba(255,255,255,0.65); position:relative; -webkit-tap-highlight-color:transparent;
+  }
+  .page-tab.active{ color:#fff; }
+  .page-tab.active::after{
+    content:''; position:absolute; left:0; right:0; bottom:0; height:3px;
+    border-radius:3px; background:#fff;
+  }
+
+  .pages-viewport{ position:relative; overflow:hidden; max-width:1180px; margin:0 auto; transition:height .38s cubic-bezier(.4,0,.2,1); }
+  .pages-track{
+    display:flex; width:200%; align-items:flex-start;
+    transition:transform .42s cubic-bezier(.4,0,.2,1);
+  }
+  .pages-track.show-notes{ transform:translateX(-50%); }
+  .page-slot{ width:50%; flex-shrink:0; box-sizing:border-box; padding:0 6px; }
+  .page-heading{
+    font-family:'Fraunces', serif; font-weight:600; font-size:20px;
+    color:var(--ink); margin:2px 0 16px 4px; display:none;
+  }
+  /* bóng mờ chạy qua khi lật giữa 2 trang, đồng bộ cảm giác với lịch */
+  .pages-viewport::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg, rgba(30,59,38,.14), transparent 10%, transparent 90%, rgba(30,59,38,.14));
+    opacity:0; transition:opacity .18s ease; pointer-events:none; z-index:5;
+  }
+  .pages-viewport.flipping::after{ opacity:1; }
+
+  .notes-grid{ display:grid; grid-template-columns:1fr; gap:22px; }
+  .notes-col-a, .notes-col-b{ display:flex; flex-direction:column; min-width:0; }
+
   @media (max-width:980px){
-    .board{ grid-template-columns:1fr; max-width:520px; }
-    .col-left, .col-right{ order:2; }
-    .col-center{ order:1; }
+    .page-tabs{ display:flex; }
+    .pages-viewport{ max-width:100%; }
+  }
+  @media (max-width:600px){
+    body{ padding:16px 10px 24px; }
+  }
+  @media (min-width:761px){
+    .notes-grid{ grid-template-columns:220px 1fr; align-items:start; }
+  }
+  @media (min-width:981px){
+    .page-heading{ display:block; }
+    .pages-viewport{ overflow:visible; }
+    .pages-track{ display:grid; grid-template-columns: minmax(420px,600px) 1fr; width:auto; gap:30px; transform:none !important; }
+    .page-slot{ width:auto; padding:0; }
+    .pages-viewport::after{ display:none; }
   }
 
   .paper-card{
     background:var(--card);
     border-radius:6px;
-    box-shadow: 0 1px 1px rgba(74,56,38,0.06), 0 18px 34px -20px rgba(74,56,38,0.35);
+    box-shadow: 0 1px 1px rgba(30,59,38,0.06), 0 18px 34px -20px rgba(30,59,38,0.35);
     position:relative;
   }
   .tape{
     position:absolute;
     width:64px;height:24px;
-    background:linear-gradient(180deg, rgba(233,221,190,0.9), rgba(214,197,152,0.75));
-    border:1px solid rgba(180,160,120,0.35);
-    box-shadow:0 2px 4px rgba(74,56,38,0.15);
+    background:linear-gradient(180deg, rgba(206,235,199,0.9), rgba(170,214,160,0.75));
+    border:1px solid rgba(120,170,120,0.35);
+    box-shadow:0 2px 4px rgba(30,59,38,0.15);
     opacity:0.85;
   }
 
   /* ---------- polaroid ---------- */
   .polaroid{
-    background:#FFFDF8;
+    background:#FFFFFF;
     padding:14px 14px 44px;
     border-radius:2px;
-    box-shadow:0 10px 26px -12px rgba(74,56,38,0.4), 0 2px 4px rgba(74,56,38,0.08);
+    box-shadow:0 10px 26px -12px rgba(30,59,38,0.4), 0 2px 4px rgba(30,59,38,0.08);
     position:relative;
   }
   .polaroid .frame{
     aspect-ratio: 4/5;
     background:
-      linear-gradient(160deg, #cfe0e8, #a9c6d6 40%, #eadfc4 70%, #cbb98f);
+      linear-gradient(160deg, #cdeccb, #9fd89f 40%, #e7f6d9 70%, #b7dba0);
     border-radius:1px;
     overflow:hidden;
     position:relative;
@@ -89,12 +134,12 @@
   .polaroid .frame .add-hint{
     position:absolute; inset:0;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:6px; color:rgba(74,56,38,0.55); font-size:12px;
+    gap:6px; color:rgba(30,59,38,0.55); font-size:12px;
     background:rgba(255,255,255,0.15);
   }
   .polaroid .frame .add-hint .plus{
     width:34px;height:34px;border-radius:50%;
-    border:1.5px dashed rgba(74,56,38,0.4);
+    border:1.5px dashed rgba(30,59,38,0.4);
     display:flex;align-items:center;justify-content:center; font-size:16px;
   }
   .polaroid .caption{
@@ -103,26 +148,26 @@
   }
 
   /* ---------- left column ---------- */
-  .col-left{ padding-top:10px; }
+  .notes-col-a{ padding-top:2px; }
   .main-polaroid{ transform:rotate(-2.5deg); }
   .main-polaroid .tape{ top:-14px; left:38%; transform:rotate(-8deg); }
 
   .note-card{
     margin-top:26px;
-    background:#F6EFDD;
+    background:#EAF6E5;
     padding:20px 20px 22px;
     transform:rotate(1.4deg);
     clip-path: polygon(0% 1%, 3% 0%, 97% 1%, 100% 3%, 99% 97%, 96% 100%, 2% 99%, 1% 96%);
-    box-shadow:0 10px 22px -14px rgba(74,56,38,0.4);
+    box-shadow:0 10px 22px -14px rgba(30,59,38,0.4);
   }
   .note-card h4{ font-family:'Fraunces', serif; font-weight:600; font-size:17px; margin:0 0 12px; }
-  .note-list{ margin:0; padding-left:18px; font-size:13.5px; line-height:2; color:#5A4934; outline:none; }
+  .note-list{ margin:0; padding-left:18px; font-size:13.5px; line-height:2; color:#2F4F3A; outline:none; }
   .note-list li{ margin-bottom:1px; }
-  .note-heart{ text-align:right; color:#B98B6B; font-size:16px; margin-top:8px; }
+  .note-heart{ text-align:right; color:#5FAE6A; font-size:16px; margin-top:8px; }
 
   /* ---------- center calendar ---------- */
-  .cal-card{ padding:26px 28px 24px; }
-  .cal-top{ display:flex; align-items:flex-start; justify-content:space-between; }
+  .cal-card{ padding:26px 28px 24px; position:relative; }
+  .cal-top{ display:block; }
   .stat-label{ font-weight:700; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:0 0 4px; }
   .stat-number{ font-family:'Fraunces', serif; font-weight:600; font-size:38px; line-height:1; margin:0; }
   .stat-number span{ color:var(--muted); font-size:24px; }
@@ -134,27 +179,55 @@
     display:flex;align-items:center;justify-content:center; transition:transform .15s ease;
   }
   .gear-btn:hover{ transform:rotate(25deg); }
-  .cal-nav{ display:flex; gap:8px; margin-top:12px; justify-content:flex-end; }
+  /* nav buttons stay fixed at the corner like a bookmark tab, unaffected by the page-turn */
+  .cal-nav{
+    display:flex; gap:8px;
+    position:absolute; top:26px; right:28px; z-index:6;
+  }
   .nav-btn{
-    width:30px;height:30px;border-radius:50%; border:1.5px solid var(--ring); background:transparent;
+    width:30px;height:30px;border-radius:50%; border:1.5px solid var(--ring); background:var(--card);
     color:var(--ink); font-size:14px; cursor:pointer; display:flex;align-items:center;justify-content:center;
+    transition:background .15s ease;
   }
   .nav-btn:hover{ background:var(--card-edge); }
+  .nav-btn:active{ transform:scale(.92); }
 
   .sync-line{ display:flex; align-items:center; gap:6px; margin-top:14px; font-size:12.5px; color:var(--muted); }
-  .dot{ width:7px;height:7px;border-radius:50%; background:#C8BE9E; flex-shrink:0; }
+  .dot{ width:7px;height:7px;border-radius:50%; background:#C7DFC0; flex-shrink:0; }
   .dot.on{ background:var(--happy); }
   .dot.off{ background:var(--angry); }
   .sync-line button{ margin-left:auto; border:none; background:none; color:var(--accent); font-size:12.5px; font-weight:600; text-decoration:underline; cursor:pointer; padding:0; }
 
   hr{ border:none; border-top:1px solid var(--line); margin:18px 0; }
 
+  /* ---------- page-turn effect ---------- */
+  .cal-page-frame{
+    position:relative;
+    overflow:hidden;
+  }
+  .cal-page-content{ will-change:transform, opacity; }
+  .cal-page-content.no-anim{ transition:none !important; }
+  .cal-page-ghost{
+    position:absolute; top:0; left:0; width:100%;
+    pointer-events:none; will-change:transform, opacity;
+  }
+  /* soft shadow sweeping across the seam while the page turns, like light catching paper */
+  .cal-page-frame::after{
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(90deg, rgba(30,59,38,.16), transparent 10%, transparent 90%, rgba(30,59,38,.16));
+    opacity:0; transition:opacity .18s ease;
+    pointer-events:none; z-index:5;
+  }
+  .cal-page-frame.flipping::after{ opacity:1; }
+
   .dow-row, .day-row{ display:grid; grid-template-columns:repeat(7,1fr); }
   .dow{ text-align:center; font-weight:700; font-size:13px; padding-bottom:14px; }
   .day-cell{ display:flex; flex-direction:column; align-items:center; gap:7px; padding:4px 2px 14px; position:relative; }
   .day-num{ font-size:13px; color:var(--ink); }
-  .day-num.pad{ color:#D9CBA5; }
+  .day-num.pad{ color:#CDE7C6; }
   .mood-dot{
+    position:relative;
     width:36px;height:36px;border-radius:50%; display:flex;align-items:center;justify-content:center;
     font-size:17px; cursor:pointer; background:transparent; border:1.5px dashed var(--ring); transition: transform .12s ease;
   }
@@ -163,6 +236,11 @@
   .day-cell.pad .mood-dot{ visibility:hidden; }
   .day-cell.today .mood-dot{ border-color:var(--accent); border-style:solid; border-width:2px; }
   .day-cell.today .day-num{ color:var(--accent); font-weight:700; }
+  .note-badge{
+    position:absolute; top:-4px; right:-4px; min-width:15px; height:15px; padding:0 3px;
+    border-radius:8px; background:var(--accent); color:#fff; font-size:9.5px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; line-height:1; box-shadow:0 0 0 2px var(--card);
+  }
 
   .legend{ display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:6px; }
   .legend-item{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
@@ -172,17 +250,17 @@
   .trend svg{ width:100%; height:54px; display:block; }
 
   /* ---------- right column ---------- */
-  .col-right{ padding-top:10px; }
+  .notes-col-b{ padding-top:2px; }
   .today-note{
-    background:#F6EAC9; padding:22px 18px 20px; text-align:center; transform:rotate(2deg);
+    background:#E3F5DC; padding:22px 18px 20px; text-align:center; transform:rotate(2deg);
     clip-path: polygon(0% 1%, 4% 0%, 96% 1%, 100% 4%, 99% 96%, 95% 100%, 3% 99%, 1% 95%);
-    box-shadow:0 10px 22px -14px rgba(74,56,38,0.4); position:relative;
+    box-shadow:0 10px 22px -14px rgba(30,59,38,0.4); position:relative;
   }
   .today-note .tape{ top:-13px; left:32%; width:56px; transform:rotate(6deg); }
   .today-note h4{ font-family:'Fraunces', serif; font-weight:600; font-size:16px; margin:6px 0 10px; }
   .today-emoji{ font-size:44px; line-height:1; margin-bottom:8px; }
-  .today-chip{ display:inline-block; background:var(--content-bg); color:#7A5C15; font-size:12.5px; font-weight:600; padding:5px 14px; border-radius:999px; margin-bottom:12px; }
-  .today-msg{ font-family:'Caveat', cursive; font-size:16px; color:#5A4934; line-height:1.35; }
+  .today-chip{ display:inline-block; background:var(--content-bg); color:#2E6B3E; font-size:12.5px; font-weight:600; padding:5px 14px; border-radius:999px; margin-bottom:12px; }
+  .today-msg{ font-family:'Caveat', cursive; font-size:16px; color:#2F4F3A; line-height:1.35; }
 
   .side-polaroid{ margin-top:24px; }
   .side-polaroid:nth-of-type(1){ transform:rotate(3deg); }
@@ -190,8 +268,8 @@
 
   /* ---------- stats footer ---------- */
   .stats-bar{
-    max-width:1180px; margin:30px auto 0; background:var(--card); border-radius:16px;
-    box-shadow: 0 1px 1px rgba(74,56,38,0.06), 0 18px 34px -20px rgba(74,56,38,0.35);
+    max-width:1180px; margin:0 auto 26px; background:var(--card); border-radius:16px;
+    box-shadow: 0 1px 1px rgba(30,59,38,0.06), 0 18px 34px -20px rgba(30,59,38,0.35);
     padding:20px 10px; display:grid; grid-template-columns:repeat(5,1fr);
   }
   @media (max-width:900px){ .stats-bar{ grid-template-columns:repeat(2,1fr); } }
@@ -201,7 +279,7 @@
   .stat-icon{ width:40px;height:40px;border-radius:12px; background:var(--content-bg); display:flex;align-items:center;justify-content:center; font-size:17px; flex-shrink:0; }
   .stat-item .num{ font-family:'Fraunces', serif; font-weight:600; font-size:21px; }
   .stat-item .label{ font-size:12px; color:var(--muted); margin-bottom:2px; }
-  .stat-item .sub{ font-size:11.5px; color:#9BA987; margin-top:2px; }
+  .stat-item .sub{ font-size:11.5px; color:#7C9484; margin-top:2px; }
 
   /* ---------- modal ---------- */
   .overlay{ position:fixed; inset:0; background:rgba(40,30,18,0.42); display:none; align-items:flex-end; justify-content:center; z-index:50; }
@@ -219,6 +297,13 @@
   .mood-name{ font-size:11.5px; color:var(--ink); }
   .note-field{ width:100%; border:1.5px solid var(--line); border-radius:14px; padding:10px 14px; font-family:'Inter'; font-size:13.5px; resize:none; margin-bottom:16px; color:var(--ink); }
   .note-field:focus{ outline:none; border-color:var(--accent); }
+  .existing-notes{ margin-bottom:14px; max-height:160px; overflow-y:auto; }
+  .existing-notes:empty{ display:none; }
+  .note-item{ display:flex; align-items:flex-start; gap:8px; background:#EAF6E5; border-radius:12px; padding:9px 10px; font-size:13px; color:#2F4F3A; margin-bottom:7px; line-height:1.4; }
+  .note-item .note-text{ flex:1; white-space:pre-wrap; word-break:break-word; }
+  .note-item .note-del{ border:none; background:none; color:var(--angry); font-size:16px; cursor:pointer; line-height:1; padding:0 2px; flex-shrink:0; }
+  .today-msg .note-line{ display:block; }
+  .today-msg .note-line + .note-line{ margin-top:6px; }
   .sheet-actions{ display:flex; gap:10px; }
   .btn{ flex:1; border:none; border-radius:14px; padding:13px; font-weight:600; font-size:14px; cursor:pointer; }
   .btn.primary{ background:var(--accent); color:#fff; }
@@ -236,85 +321,6 @@
 </style>
 </head>
 <body>
-
-<div class="board">
-
-  <div class="col-left">
-    <div class="polaroid main-polaroid">
-      <div class="tape"></div>
-      <div class="frame" id="mainPhotoFrame">
-        <div class="add-hint"><span>Đang tải ảnh từ Drive…</span></div>
-      </div>
-      <div class="caption" contenteditable="true">Let the sea<br>set you free ♡</div>
-    </div>
-
-    <div class="note-card">
-      <h4 id="noteMonthTitle">Ghi chú tháng 7</h4>
-      <ul class="note-list" contenteditable="true">
-        <li>Đọc sách mỗi ngày</li>
-        <li>Tập thể dục 3 lần/tuần</li>
-        <li>Học Power BI &amp; Python</li>
-        <li>Uống đủ 2L nước</li>
-      </ul>
-      <div class="note-heart">♡</div>
-    </div>
-  </div>
-
-  <div class="col-center">
-    <div class="paper-card cal-card">
-      <div class="cal-top">
-        <div>
-          <p class="stat-label">Đã ghi trong tháng</p>
-          <p class="stat-number" id="statNumber">0<span>/31</span></p>
-          <div class="month-title" id="monthTitle">Tháng 7, 2026</div>
-        </div>
-        <div>
-          <div class="cal-nav">
-            <button class="nav-btn" id="prevBtn">‹</button>
-            <button class="nav-btn" id="nextBtn">›</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="sync-line">
-        <span class="dot" id="syncDot"></span>
-        <span id="syncText">Chưa kết nối Google Sheet</span>
-        <button id="reloadBtn">Tải lại</button>
-      </div>
-
-      <hr>
-
-      <div class="dow-row" id="dowRow"></div>
-      <div class="day-row" id="dayGrid" style="display:grid; grid-template-columns:repeat(7,1fr);"></div>
-
-      <div class="legend" id="legend"></div>
-
-      <p class="trend-title">Xu hướng cảm xúc trong tháng</p>
-      <div class="trend"><svg id="trendSvg" viewBox="0 0 520 54" preserveAspectRatio="none"></svg></div>
-    </div>
-  </div>
-
-  <div class="col-right">
-    <div class="today-note">
-      <div class="tape"></div>
-      <h4>Hôm nay</h4>
-      <div class="today-emoji" id="todayEmoji">🙂</div>
-      <div class="today-chip" id="todayChip">Chưa ghi</div>
-      <div class="today-msg" id="todayMsg">Hôm nay bạn cảm thấy thế nào?</div>
-    </div>
-
-    <div class="polaroid side-polaroid">
-      <div class="frame" id="sidePhotoFrame1"><div class="add-hint"><span>Đang tải ảnh từ Drive…</span></div></div>
-      <div class="caption" contenteditable="true">khoảnh khắc ♡</div>
-    </div>
-
-    <div class="polaroid side-polaroid">
-      <div class="frame" id="sidePhotoFrame2"><div class="add-hint"><span>Đang tải ảnh từ Drive…</span></div></div>
-      <div class="caption" contenteditable="true">nắng &amp; gió biển</div>
-    </div>
-  </div>
-
-</div>
 
 <div class="stats-bar">
   <div class="stat-item">
@@ -359,13 +365,113 @@
   </div>
 </div>
 
+<div class="page-tabs" id="pageTabs">
+  <button class="page-tab active" data-page="score" type="button">Mood</button>
+  <button class="page-tab" data-page="notes" type="button">Notes</button>
+</div>
+
+<div class="pages-viewport" id="pagesViewport">
+  <div class="pages-track" id="pagesTrack">
+
+    <div class="page-slot page-score">
+      <h3 class="page-heading">Mood</h3>
+      <div class="paper-card cal-card">
+        <div class="cal-nav">
+          <button class="nav-btn" id="prevBtn">‹</button>
+          <button class="nav-btn" id="nextBtn">›</button>
+        </div>
+
+        <div class="cal-page-frame" id="calPageFrame">
+          <div class="cal-page-content" id="calPageContent">
+            <div class="cal-top">
+              <p class="stat-label">Đã ghi trong tháng</p>
+              <p class="stat-number" id="statNumber">0<span>/31</span></p>
+              <div class="month-title" id="monthTitle">Tháng 7, 2026</div>
+            </div>
+
+            <div class="sync-line">
+              <span class="dot" id="syncDot"></span>
+              <span id="syncText">Chưa kết nối Google Sheet</span>
+              <button id="reloadBtn">Tải lại</button>
+            </div>
+
+            <hr>
+
+            <div class="dow-row" id="dowRow"></div>
+            <div class="day-row" id="dayGrid" style="display:grid; grid-template-columns:repeat(7,1fr);"></div>
+
+            <div class="legend" id="legend"></div>
+
+            <p class="trend-title">Xu hướng cảm xúc trong tháng</p>
+            <div class="trend"><svg id="trendSvg" viewBox="0 0 520 54" preserveAspectRatio="none"></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-slot page-notes">
+      <h3 class="page-heading">Notes</h3>
+      <div class="notes-grid">
+        <div class="notes-col-a">
+          <div class="polaroid main-polaroid">
+            <div class="tape"></div>
+            <div class="frame" id="mainPhotoFrame">
+              <div class="add-hint"><span>Đang tải ảnh từ Drive…</span></div>
+            </div>
+            <div class="caption" contenteditable="true">Let the sea<br>set you free ♡</div>
+          </div>
+
+          <div class="note-card">
+            <h4 id="noteMonthTitle">Ghi chú tháng 7</h4>
+            <ul class="note-list" contenteditable="true">
+              <li>Stay hungry. Stay foolish.</li>
+              <li>Make yourself proud.</li>
+              <li>Progress, not perfection.</li>
+              <li>Choose courage over comfort.</li>
+              <li>Focus on solutions, not excuses.</li>
+              <li>Win the day.</li>
+              <li>One step at a time.</li>
+              <li>Never settle for less than your potential.</li>
+              <li>Success is a journey, not a destination.</li>
+              <li>Believe. Build. Become.</li>
+            </ul>
+            <div class="note-heart">♡</div>
+          </div>
+        </div>
+
+        <div class="notes-col-b">
+          <div class="today-note">
+            <div class="tape"></div>
+            <h4>Hôm nay</h4>
+            <div class="today-emoji" id="todayEmoji">🙂</div>
+            <div class="today-chip" id="todayChip">Chưa ghi</div>
+            <div class="today-msg" id="todayMsg">Hôm nay bạn cảm thấy thế nào?</div>
+          </div>
+
+          <div class="polaroid side-polaroid">
+            <div class="frame" id="sidePhotoFrame1"><div class="add-hint"><span>Đang tải ảnh từ Drive…</span></div></div>
+            <div class="caption" contenteditable="true">khoảnh khắc ♡</div>
+          </div>
+
+          <div class="polaroid side-polaroid">
+            <div class="frame" id="sidePhotoFrame2"><div class="add-hint"><span>Đang tải ảnh từ Drive…</span></div></div>
+            <div class="caption" contenteditable="true">nắng &amp; gió biển</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <div class="overlay" id="moodOverlay">
   <div class="sheet">
     <div class="sheet-handle"></div>
     <p class="sheet-title" id="sheetTitle">Hôm nay bạn thế nào?</p>
     <p class="sheet-sub">Chọn một cảm xúc cho ngày này</p>
     <div class="mood-grid" id="moodGrid"></div>
-    <textarea class="note-field" id="noteField" rows="2" placeholder="Ghi chú (không bắt buộc)…"></textarea>
+    <div class="existing-notes" id="existingNotes"></div>
+    <textarea class="note-field" id="noteField" rows="2" placeholder="Thêm ghi chú mới (không bắt buộc)…"></textarea>
     <div class="sheet-actions">
       <button class="btn danger" id="clearBtn">Xoá</button>
       <button class="btn ghost" id="cancelBtn">Huỷ</button>
@@ -403,6 +509,7 @@ let scriptUrl = SCRIPT_URL;
 let photoCount = 0;
 
 const pad = n => String(n).padStart(2,'0');
+const escapeHtml = s => String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const keyOf = (y,m,d) => `${y}-${pad(m+1)}-${pad(d)}`;
 const todayKey = (() => { const t=new Date(); return keyOf(t.getFullYear(), t.getMonth(), t.getDate()); })();
 
@@ -440,16 +547,18 @@ function renderCalendar(){
     if(c.pad) return `<div class="day-cell pad"><div class="day-num pad">${c.num}</div><div class="mood-dot"></div></div>`;
     const entry = entries[c.key];
     const isToday = c.key === todayKey;
+    const noteCount = entry && entry.notes ? entry.notes.length : 0;
+    const badge = noteCount ? `<span class="note-badge">${noteCount > 9 ? '9+' : noteCount}</span>` : '';
     if(entry && moodById[entry.mood]){
       const mo = moodById[entry.mood];
       return `<div class="day-cell ${isToday?'today':''}">
         <div class="day-num">${c.num}</div>
-        <div class="mood-dot filled" data-key="${c.key}" style="background:${mo.bg}">${mo.emoji}</div>
+        <div class="mood-dot filled" data-key="${c.key}" style="background:${mo.bg}">${mo.emoji}${badge}</div>
       </div>`;
     }
     return `<div class="day-cell ${isToday?'today':''}">
       <div class="day-num">${c.num}</div>
-      <div class="mood-dot" data-key="${c.key}"></div>
+      <div class="mood-dot" data-key="${c.key}">${badge}</div>
     </div>`;
   }).join('');
 
@@ -474,7 +583,7 @@ function renderTrend(y,m,daysInMonth){
     if(e && moodById[e.mood]) pts.push({d, mood: e.mood, score: moodById[e.mood].score});
   }
   if(pts.length < 2){
-    svg.innerHTML = `<text x="${w/2}" y="${h/2+4}" text-anchor="middle" font-size="11" fill="#BDAE84">Chưa đủ dữ liệu để vẽ xu hướng</text>`;
+    svg.innerHTML = `<text x="${w/2}" y="${h/2+4}" text-anchor="middle" font-size="11" fill="#9DBF9A">Chưa đủ dữ liệu để vẽ xu hướng</text>`;
     return;
   }
   const x = d => padX + ((d-1)/(daysInMonth-1)) * (w - padX*2);
@@ -484,7 +593,7 @@ function renderTrend(y,m,daysInMonth){
     const mo = moodById[p.mood];
     return `<circle cx="${x(p.d).toFixed(1)}" cy="${y_(p.score).toFixed(1)}" r="3" fill="${mo.color}"/>`;
   }).join('');
-  svg.innerHTML = `<path d="${path}" fill="none" stroke="#C79A4F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>${dots}`;
+  svg.innerHTML = `<path d="${path}" fill="none" stroke="#3FAE55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>${dots}`;
 }
 
 function renderTodayCard(){
@@ -493,7 +602,13 @@ function renderTodayCard(){
     const mo = moodById[e.mood];
     document.getElementById('todayEmoji').textContent = mo.emoji;
     document.getElementById('todayChip').textContent = mo.name;
-    document.getElementById('todayMsg').textContent = e.note ? e.note : 'Cảm ơn vì một ngày thật tuyệt vời!';
+    const notes = (e.notes || []).filter(n => n && n.trim());
+    const msgEl = document.getElementById('todayMsg');
+    if(notes.length){
+      msgEl.innerHTML = notes.map(n => `<span class="note-line">${escapeHtml(n)}</span>`).join('');
+    } else {
+      msgEl.textContent = 'Cảm ơn vì một ngày thật tuyệt vời!';
+    }
   } else {
     document.getElementById('todayEmoji').textContent = '🙂';
     document.getElementById('todayChip').textContent = 'Chưa ghi';
@@ -518,7 +633,7 @@ function renderStats(monthKeys){
   const positivePct = monthKeys.length ? Math.round((positiveCount / monthKeys.length) * 100) : 0;
   document.getElementById('statPositive').textContent = `${positivePct}%`;
 
-  const journalCount = monthKeys.filter(k => entries[k].note && entries[k].note.trim()).length;
+  const journalCount = monthKeys.reduce((s,k)=> s + ((entries[k].notes || []).filter(n=>n && n.trim()).length), 0);
   document.getElementById('statJournal').textContent = journalCount;
 
   document.getElementById('statPhotos').textContent = photoCount;
@@ -548,8 +663,39 @@ function openMoodSheet(key){
     });
   });
   grid.dataset.selected = cur ? cur.mood : '';
-  document.getElementById('noteField').value = cur ? (cur.note || '') : '';
+  document.getElementById('noteField').value = '';
+  renderExistingNotes();
   document.getElementById('moodOverlay').classList.add('show');
+}
+
+function renderExistingNotes(){
+  const wrap = document.getElementById('existingNotes');
+  const cur = entries[activeDate];
+  const notes = (cur && cur.notes) ? cur.notes.filter(n => n && n.trim()) : [];
+  wrap.innerHTML = notes.map((n, i) => `
+    <div class="note-item">
+      <span class="note-text">${escapeHtml(n)}</span>
+      <button type="button" class="note-del" data-idx="${i}" title="Xoá ghi chú này">×</button>
+    </div>`).join('');
+  wrap.querySelectorAll('.note-del').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const idx = Number(btn.dataset.idx);
+      await deleteNoteAt(activeDate, idx);
+    });
+  });
+}
+
+async function deleteNoteAt(key, idx){
+  const cur = entries[key];
+  if(!cur || !cur.notes) return;
+  cur.notes.splice(idx, 1);
+  if(!cur.mood && cur.notes.length === 0){
+    delete entries[key];
+  }
+  renderCalendar();
+  renderExistingNotes();
+  const stillThere = entries[key];
+  await syncSave(key, stillThere ? stillThere.mood : '', JSON.stringify(stillThere ? stillThere.notes : []));
 }
 document.getElementById('cancelBtn').addEventListener('click', ()=> document.getElementById('moodOverlay').classList.remove('show'));
 document.getElementById('moodOverlay').addEventListener('click', e=>{ if(e.target.id==='moodOverlay') e.currentTarget.classList.remove('show'); });
@@ -557,11 +703,13 @@ document.getElementById('moodOverlay').addEventListener('click', e=>{ if(e.targe
 document.getElementById('saveBtn').addEventListener('click', async ()=>{
   const selected = document.getElementById('moodGrid').dataset.selected;
   if(!selected){ showToast('Hãy chọn một cảm xúc'); return; }
-  const note = document.getElementById('noteField').value.trim();
-  entries[activeDate] = { mood: selected, note };
+  const newNote = document.getElementById('noteField').value.trim();
+  const existingNotes = (entries[activeDate] && entries[activeDate].notes) ? entries[activeDate].notes.slice() : [];
+  const notes = newNote ? [...existingNotes, newNote] : existingNotes;
+  entries[activeDate] = { mood: selected, notes };
   renderCalendar();
   document.getElementById('moodOverlay').classList.remove('show');
-  await syncSave(activeDate, selected, note);
+  await syncSave(activeDate, selected, JSON.stringify(notes));
 });
 document.getElementById('clearBtn').addEventListener('click', async ()=>{
   delete entries[activeDate];
@@ -569,9 +717,113 @@ document.getElementById('clearBtn').addEventListener('click', async ()=>{
   document.getElementById('moodOverlay').classList.remove('show');
   await syncSave(activeDate, '', '');
 });
+document.getElementById('noteField').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){
+    e.preventDefault();
+    document.getElementById('saveBtn').click();
+  }
+});
 
-document.getElementById('prevBtn').addEventListener('click', ()=>{ current = new Date(current.getFullYear(), current.getMonth()-1, 1); renderCalendar(); loadFromSheet(); });
-document.getElementById('nextBtn').addEventListener('click', ()=>{ current = new Date(current.getFullYear(), current.getMonth()+1, 1); renderCalendar(); loadFromSheet(); });
+/* ---------- hiệu ứng lật trang khi đổi tháng ---------- */
+const FLIP_MS = 420;
+let isFlipping = false;
+
+function changeMonth(delta){
+  if(isFlipping) return;
+  isFlipping = true;
+
+  const frame = document.getElementById('calPageFrame');
+  const content = document.getElementById('calPageContent');
+
+  // chụp lại "trang" hiện tại làm bản sao (ghost) để nó trượt ra ngoài
+  const ghost = content.cloneNode(true);
+  ghost.removeAttribute('id');
+  ghost.classList.add('cal-page-ghost');
+  frame.appendChild(ghost);
+
+  // đặt trang thật vào vị trí chờ (ngoài khung, phía sẽ trượt vào) — không animate bước này
+  content.classList.add('no-anim');
+  content.style.transform = `translateX(${delta > 0 ? 100 : -100}%)`;
+  content.style.opacity = '0';
+
+  // cập nhật dữ liệu tháng mới lên chính trang thật
+  current = new Date(current.getFullYear(), current.getMonth() + delta, 1);
+  renderCalendar();
+  loadFromSheet();
+
+  frame.classList.add('flipping');
+  void content.offsetWidth; // ép reflow để bỏ no-anim mượt
+
+  requestAnimationFrame(()=>{
+    content.classList.remove('no-anim');
+    content.style.transition = `transform ${FLIP_MS}ms cubic-bezier(.4,0,.2,1), opacity ${FLIP_MS}ms ease`;
+    ghost.style.transition = `transform ${FLIP_MS}ms cubic-bezier(.4,0,.2,1), opacity ${FLIP_MS}ms ease`;
+
+    content.style.transform = 'translateX(0)';
+    content.style.opacity = '1';
+    ghost.style.transform = `translateX(${delta > 0 ? -100 : 100}%)`;
+    ghost.style.opacity = '0';
+  });
+
+  setTimeout(()=>{
+    ghost.remove();
+    content.style.transition = '';
+    content.style.transform = '';
+    frame.classList.remove('flipping');
+    isFlipping = false;
+  }, FLIP_MS + 40);
+}
+
+document.getElementById('prevBtn').addEventListener('click', ()=> changeMonth(-1));
+document.getElementById('nextBtn').addEventListener('click', ()=> changeMonth(1));
+
+/* ---------- chuyển trang Score / Notes (chủ yếu dùng trên điện thoại) ---------- */
+const pagesViewport = document.getElementById('pagesViewport');
+const pagesTrack = document.getElementById('pagesTrack');
+const scoreSlot = document.querySelector('.page-slot.page-score');
+const notesSlot = document.querySelector('.page-slot.page-notes');
+let activePage = 'score';
+
+function syncPageHeight(){
+  // Trên desktop (>980px) cả 2 trang hiển thị song song nên để chiều cao tự nhiên
+  if(window.innerWidth > 980){
+    pagesViewport.style.height = '';
+    return;
+  }
+  const slot = activePage === 'notes' ? notesSlot : scoreSlot;
+  pagesViewport.style.height = slot.offsetHeight + 'px';
+}
+
+(function initPageTabs(){
+  const tabs = document.querySelectorAll('.page-tab');
+
+  function goToPage(name){
+    activePage = name;
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.page === name));
+    pagesTrack.classList.toggle('show-notes', name === 'notes');
+    syncPageHeight();
+    pagesViewport.classList.add('flipping');
+    clearTimeout(goToPage._t);
+    goToPage._t = setTimeout(()=> pagesViewport.classList.remove('flipping'), 460);
+  }
+
+  tabs.forEach(tab=>{
+    tab.addEventListener('click', ()=> goToPage(tab.dataset.page));
+  });
+
+  syncPageHeight();
+  window.addEventListener('resize', ()=>{
+    clearTimeout(initPageTabs._r);
+    initPageTabs._r = setTimeout(syncPageHeight, 120);
+  });
+
+  // tự cập nhật chiều cao khi nội dung trang đổi (đổi tháng, sửa ghi chú, đổi ảnh…)
+  if('ResizeObserver' in window){
+    const ro = new ResizeObserver(()=> syncPageHeight());
+    ro.observe(scoreSlot);
+    ro.observe(notesSlot);
+  }
+})();
 
 document.getElementById('reloadBtn').addEventListener('click', ()=>{ loadFromSheet(); });
 
@@ -582,6 +834,20 @@ function setSyncStatus(state, text){
   document.getElementById('syncText').textContent = text;
 }
 
+function parseNoteField(raw){
+  if(!raw) return [];
+  if(Array.isArray(raw)) return raw.filter(n => n && String(n).trim());
+  const str = String(raw).trim();
+  if(!str) return [];
+  if(str.startsWith('[')){
+    try{
+      const arr = JSON.parse(str);
+      if(Array.isArray(arr)) return arr.filter(n => n && String(n).trim());
+    }catch(e){ /* not JSON, fall through to plain text */ }
+  }
+  return [str];
+}
+
 async function loadFromSheet(){
   if(!scriptUrl){ setSyncStatus('off', 'Chưa kết nối Google Sheet'); return; }
   setSyncStatus(null, 'Đang tải…');
@@ -589,7 +855,16 @@ async function loadFromSheet(){
     const res = await fetch(`${scriptUrl}?action=list`, { method:'GET' });
     const data = await res.json();
     entries = {};
-    (data.entries || []).forEach(r=>{ if(r.date && r.mood) entries[r.date] = { mood:r.mood, note:r.note || '' }; });
+    (data.entries || []).forEach(r=>{
+      if(!r.date || !r.mood) return;
+      const parsedNotes = parseNoteField(r.note);
+      if(entries[r.date]){
+        entries[r.date].mood = r.mood;
+        entries[r.date].notes = entries[r.date].notes.concat(parsedNotes);
+      } else {
+        entries[r.date] = { mood:r.mood, notes: parsedNotes };
+      }
+    });
     setSyncStatus('on', 'Đã kết nối Google Sheet');
     renderCalendar();
   }catch(err){
@@ -653,6 +928,10 @@ setInterval(rotatePhotos, PHOTO_ROTATE_MS);
 
 renderLegend();
 renderCalendar();
+
+// đo lại chiều cao khung sau khi lịch + ảnh đã render xong (tránh đo lúc nội dung còn rỗng)
+syncPageHeight();
+window.addEventListener('load', syncPageHeight);
 
 /* ---------- tự động cập nhật khi mở web / quay lại tab / định kỳ ---------- */
 function refreshAll(){
