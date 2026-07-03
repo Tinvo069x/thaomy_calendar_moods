@@ -391,7 +391,7 @@
 
             <div class="sync-line">
               <span class="dot" id="syncDot"></span>
-              <span id="syncText">Chưa kết nối Google Sheet</span>
+              <span id="syncText">Đang kết nối Supabase…</span>
               <button id="reloadBtn">Tải lại</button>
             </div>
 
@@ -482,10 +482,13 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-// 👉 Dán URL Apps Script của bạn vào giữa hai dấu ngoặc kép bên dưới, ví dụ:
-// const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbXXXXXXXXXXXXXXXX/exec";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbya93u6JXTenqmw-o3BdJ9rLhVu7bWrI0mcW3Wmles9J87UmGZIftUs-wdqtAilip7u/exec";
+// 👉 Kết nối Supabase (thay Google Apps Script cũ)
+const SUPABASE_URL = "https://ktojyvgqfhmdghrmmscs.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WwqOKc3tHl5shvavyegZZQ_bYF3TLQB";
+const SUPABASE_TABLE = "emotion_log";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 // 👉 Ảnh polaroid nhúng trực tiếp trong file (base64), đổi ngẫu nhiên mỗi 3 giây.
 const PHOTO_ROTATE_MS = 3000;
@@ -505,7 +508,6 @@ const monthNames = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Thá
 let current = new Date(2026, 6, 1);
 let entries = {};
 let activeDate = null;
-let scriptUrl = SCRIPT_URL;
 let photoCount = 0;
 
 const pad = n => String(n).padStart(2,'0');
@@ -849,43 +851,55 @@ function parseNoteField(raw){
 }
 
 async function loadFromSheet(){
-  if(!scriptUrl){ setSyncStatus('off', 'Chưa kết nối Google Sheet'); return; }
   setSyncStatus(null, 'Đang tải…');
   try{
-    const res = await fetch(`${scriptUrl}?action=list`, { method:'GET' });
-    const data = await res.json();
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_TABLE)
+      .select('date, emotion, note');
+    if(error) throw error;
     entries = {};
-    (data.entries || []).forEach(r=>{
-      if(!r.date || !r.mood) return;
+    (data || []).forEach(r=>{
+      if(!r.date || !r.emotion) return;
+      const dateKey = String(r.date).slice(0, 10); // phòng khi date trả về dạng timestamptz
       const parsedNotes = parseNoteField(r.note);
-      if(entries[r.date]){
-        entries[r.date].mood = r.mood;
-        entries[r.date].notes = entries[r.date].notes.concat(parsedNotes);
+      if(entries[dateKey]){
+        entries[dateKey].mood = r.emotion;
+        entries[dateKey].notes = entries[dateKey].notes.concat(parsedNotes);
       } else {
-        entries[r.date] = { mood:r.mood, notes: parsedNotes };
+        entries[dateKey] = { mood:r.emotion, notes: parsedNotes };
       }
     });
-    setSyncStatus('on', 'Đã kết nối Google Sheet');
+    setSyncStatus('on', 'Đã kết nối Supabase');
     renderCalendar();
   }catch(err){
-    setSyncStatus('off', 'Không tải được — kiểm tra URL/triển khai');
+    console.error(err);
+    setSyncStatus('off', 'Không tải được — kiểm tra kết nối Supabase');
   }
 }
 async function syncSave(date, mood, note){
-  if(!scriptUrl){ showToast('Đã lưu tạm thời (chưa kết nối Google Sheet)'); return; }
   try{
-    await fetch(scriptUrl, {
-      method:'POST',
-      headers:{ 'Content-Type':'text/plain' },
-      body: JSON.stringify({ action:'save', date, mood, note })
-    });
-    setSyncStatus('on', 'Đã kết nối Google Sheet');
-    showToast('Đã lưu vào Google Sheet');
+    const isEmpty = !mood && (!note || note === '[]' || note === '');
+    if(isEmpty){
+      const { error } = await supabaseClient
+        .from(SUPABASE_TABLE)
+        .delete()
+        .eq('date', date);
+      if(error) throw error;
+    } else {
+      const { error } = await supabaseClient
+        .from(SUPABASE_TABLE)
+        .upsert({ date, emotion: mood, note }, { onConflict: 'date' });
+      if(error) throw error;
+    }
+    setSyncStatus('on', 'Đã kết nối Supabase');
+    showToast('Đã lưu vào Supabase');
   }catch(err){
+    console.error(err);
     setSyncStatus('off', 'Lưu thất bại — kiểm tra kết nối');
-    showToast('Không lưu được lên Google Sheet');
+    showToast('Không lưu được lên Supabase');
   }
 }
+
 
 /* ---------- ảnh polaroid: nhúng trực tiếp base64, đổi ngẫu nhiên mỗi 3 giây ---------- */
 const PHOTO_FRAME_IDS = ['mainPhotoFrame', 'sidePhotoFrame1', 'sidePhotoFrame2'];
@@ -935,11 +949,10 @@ window.addEventListener('load', syncPageHeight);
 
 /* ---------- tự động cập nhật khi mở web / quay lại tab / định kỳ ---------- */
 function refreshAll(){
-  if(!scriptUrl) return;
   loadFromSheet();
 }
 
-if(scriptUrl){ refreshAll(); } else { setSyncStatus('off','Chưa kết nối Google Sheet'); }
+refreshAll();
 
 // làm mới ngay khi tab được mở lại / lấy lại focus (vd. chuyển từ ứng dụng khác về)
 document.addEventListener('visibilitychange', ()=>{
